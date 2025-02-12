@@ -1,9 +1,9 @@
 package db
 
 import (
-	"fmt"
 	"hp-server-lib/entity"
 	"log"
+	"os"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -11,19 +11,24 @@ import (
 )
 
 var DB *gorm.DB
-var err error
 
 func init() {
-	DB, err = gorm.Open(sqlite.Open("hp-lite.db"), &gorm.Config{
+	err := os.MkdirAll("./data", os.ModePerm)
+	if err != nil {
+		log.Fatal("创建目录失败", err)
+	}
+
+	DB, err = gorm.Open(sqlite.Open("./data/hp-lite.db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info), // 设置日志级别为 Info
 	})
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("数据库连接失败", err)
 	}
+
 	// 获取底层的 sql.DB 实例
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Fatal("failed to get sql.DB instance", err)
+		log.Fatal("获取DB实例失败", err)
 	}
 
 	// 设置连接池参数
