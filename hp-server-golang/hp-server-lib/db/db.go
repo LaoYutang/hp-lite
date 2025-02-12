@@ -2,11 +2,12 @@ package db
 
 import (
 	"fmt"
+	"hp-server-lib/entity"
+	"log"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"hp-server-lib/entity"
-	"log"
 )
 
 var DB *gorm.DB

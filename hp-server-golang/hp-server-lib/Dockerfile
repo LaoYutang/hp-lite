@@ -1,5 +1,5 @@
 # 构建阶段
-FROM --platform=$BUILDPLATFORM golang:alpine AS builder
+FROM --platform=$TARGETPLATFORM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . .
 
 # 下载依赖
-RUN go mod tidy
+RUN go mod download
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -18,20 +18,11 @@ ENV CGO_ENABLED=0
 ENV GOOS=$TARGETOS
 ENV GOARCH=$TARGETARCH
 
-# 针对 ARM 架构设置 GOARM
-RUN if [ "$TARGETARCH" = "arm" ]; then \
-  case "${TARGETVARIANT}" in \
-  "v7")  export GOARM=7 ;; \
-  "v6")  export GOARM=6 ;; \
-  *)     export GOARM=7 ;; \
-  esac; \
-  fi
-
 # 静态编译
 RUN go build -o hp-server .
 
 # 运行阶段
-FROM alpine:latest
+FROM alpine:3.19
 
 WORKDIR /app
 
