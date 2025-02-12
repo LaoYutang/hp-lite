@@ -1,22 +1,14 @@
 # HP-Lite 3.0内网穿透
 > fork from https://gitee.com/HServer/hp-lite 2025.2.12
-> 使用dockerfile打包server
 
 ## HP Lite介绍
 HP-Lite3.0是一个单机方案
 我们采用的是数据转发实现 稳定性可靠性是有保证的即便是极端的环境只要能上网就能实现穿透。
 我们支持TCP和UDP协议，针对 http/https ws/wss 协议做了大量的优化工作可以更加灵活的控制。让用户使用更佳舒服简单。
 
-## 资源下载地址
-- 3.0服务服务端完全兼容 2.0客户端 https://gitee.com/HServer/hp-lite/releases/tag/3.0 
-- 客户端和2.0的服务服务端:https://gitee.com/HServer/hp-lite/releases/tag/2.0
-- 建议：推荐使用docker，或者命令行运行，UI版本的好像没有命令行的稳定
-
 ## 服务端
-- 下载3.0的二进制文件运行即可
-- 配置说明 app.yml
-- app.yml文件放在和二进制同目录下即可，不然会默认启动配置
-- 建议：部署时关闭所有防火墙，云厂的安全组，注意UDP端口放开，还有TCP，
+### 配置说明
+> app.yml文件放在和二进制同目录下即可，不然会默认启动失败
 ```yaml
 admin:
   username: 'admin' #后台账号
@@ -35,25 +27,31 @@ acme:
   http-port: '5634' #证书验证会访问http接口，会通过80转发过来，所以这个端口不用暴露外网
 ```
 
-## 3.0 服务端安装教程
-- https://b23.tv/8JBNOFX
+### 服务端docker部署
+```bash
+docker run -d \
+    --name hp \
+    --net host \
+    -v ./data:/app/data \
+    -v ./app.yml:/app/app.yml \
+    laoyutang/hp-lite-server:latest
+```
 
 ## 客户端运行方式
 ### docker
-```shell
+```bash
 # 通过 docker run 运行容器
 sudo docker run --restart=always -d  -e server=xxx.com穿透服务:6666 -e deviceId=32位的设备ID registry.cn-shenzhen.aliyuncs.com/hserver/hp-lite:latest
 # 通过 docker run 运行容器 ARM
 sudo docker run --restart=always -d  -e server=xxx.com穿透服务:6666 -e deviceId=32位的设备ID registry.cn-shenzhen.aliyuncs.com/hserver/hp-lite:latest-arm64
 ```
 ### Linux或者win
-```shell
+```bash
 chmod -R 777 ./hp-lite-amd64
 ./hp-lite-amd64 -server=xxx.com穿透服务:6666 -deviceId=32位的设备ID 
 ```
 
-
-## 运行截图
+## 项目截图
 <img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img.png"  />
 <img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_1.png"  />
 <img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_4.png"  />
