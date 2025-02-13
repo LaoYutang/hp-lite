@@ -22,41 +22,65 @@ tunnel:
   ip: '127.0.0.1' #隧道监听服务器外网的IP（记得改成你的服务器IP或者解析的域名也可以）
   port: 9091 #隧道传输数据端口，这个端口用来传输数据的，注意这个是UDP协议，如果是安全组设置记得UDP的放开
   open-domain: true #true 开启80，443端口域名转发（如果你的服务有宝塔或者nginx等，端口多半是被用了），false 关闭
+
 acme:
   email: '232323@qq.com' #申请证书必须写一个邮箱可以随便写
   http-port: '5634' #证书验证会访问http接口，会通过80转发过来，所以这个端口不用暴露外网
 ```
 
-### 服务端docker部署
+### 服务端Docker部署
+镜像支持amd64与arm64架构
 ```bash
 docker run -d \
     --name hp \
     --net host \
+    --log-opt max-size=10m \
+    --log-opt max-file=3 \
     -v ./data:/app/data \
     -v ./app.yml:/app/app.yml \
     laoyutang/hp-lite-server:latest
 ```
 
 ## 客户端运行方式
-### docker
+### Docker
+镜像支持amd64、arm64、armv7架构，其他架构请自行打包
 ```bash
 # 通过 docker run 运行容器
-sudo docker run --restart=always -d  -e server=xxx.com穿透服务:6666 -e deviceId=32位的设备ID registry.cn-shenzhen.aliyuncs.com/hserver/hp-lite:latest
-# 通过 docker run 运行容器 ARM
-sudo docker run --restart=always -d  -e server=xxx.com穿透服务:6666 -e deviceId=32位的设备ID registry.cn-shenzhen.aliyuncs.com/hserver/hp-lite:latest-arm64
+docker run -d \
+    --restart always \
+    --net host \
+    --log-opt max-size=10m \
+    -e server=穿透服务地址:CMD端口 \
+    -e deviceId=32位的设备ID \
+    laoyutang/hp-lite-client:latest
+```
+docker-compose.yaml
+```yaml
+services:
+  hp-lite:
+    image: laoyutang/hp-lite-client:latest
+    container_name: hp-lite
+    restart: always
+    network_mode: host
+    logging: 
+      options:
+        max-size: "10m" 
+    environment:
+      - server=穿透服务地址:CMD端口
+      - deviceId=32位的设备ID
 ```
 ### Linux或者win
 ```bash
-chmod -R 777 ./hp-lite-amd64
+chmod +x ./hp-lite-amd64
 ./hp-lite-amd64 -server=xxx.com穿透服务:6666 -deviceId=32位的设备ID 
 ```
 
 ## 项目截图
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img.png"  />
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_1.png"  />
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_4.png"  />
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_5.png"  />
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_6.png"  />
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_7.png"  />
-<img src="https://gitee.com/HServer/hp-lite/raw/main/doc/img/img_8.png"  />
+<img src="./doc/img/img.png"  />
+<img src="./doc/img/img_1.png"  />
+<img src="./doc/img/img_4.png"  />
+<img src="./doc/img/img_5.png"  />
+<img src="./doc/img/img_6.png"  />
+<img src="./doc/img/img_7.png"  />
+<img src="./doc/img/img_8.png"  />
 
