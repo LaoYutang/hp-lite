@@ -19,7 +19,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd hp-web
-          npm ci --omit=dev
+          npm ci
           npm run build
 
       - name: Setup Buildx
