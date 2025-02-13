@@ -2,9 +2,9 @@
 FROM --platform=$TARGETPLATFORM node:20-alpine AS frontend-builder
 
 WORKDIR /web
-COPY hp-web/package*.json .
+COPY ../hp-web/package*.json .
 RUN npm ci --omit=dev
-COPY hp-web .
+COPY ../hp-web .
 RUN npm run build
 
 # server构建阶段
