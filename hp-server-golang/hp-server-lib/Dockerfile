@@ -1,10 +1,22 @@
-# 构建阶段
+# web构建阶段
+FROM --platform=$TARGETPLATFORM node:20-alpine AS frontend-builder
+
+WORKDIR /web
+COPY hp-web/package*.json .
+RUN npm ci --omit=dev
+COPY hp-web .
+RUN npm run build
+
+# server构建阶段
 FROM --platform=$TARGETPLATFORM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
 # 复制项目源码
 COPY . .
+
+# 复制前端构建结果到Go项目
+COPY --from=frontend-builder /web/dist ./web/static
 
 # 下载依赖
 RUN go mod download
@@ -17,6 +29,7 @@ ARG TARGETVARIANT
 ENV CGO_ENABLED=0
 ENV GOOS=$TARGETOS
 ENV GOARCH=$TARGETARCH
+ENV GOARM=${TARGETVARIANT#v}
 
 # 静态编译
 RUN go build -o hp-server .
@@ -26,9 +39,9 @@ FROM alpine:3.19
 
 WORKDIR /app
 
-# 复制二进制文件和时区数据
 COPY --from=builder /app/hp-server .
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata ca-certificates
+ENV TZ=Asia/Shanghai
 
 # 服务入口
 CMD ["./hp-server"]
