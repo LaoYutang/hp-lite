@@ -30,7 +30,7 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
-          context: ./hp-server-golang/hp-server-lib
+          context: .
           file: ./hp-server-golang/hp-server-lib/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true

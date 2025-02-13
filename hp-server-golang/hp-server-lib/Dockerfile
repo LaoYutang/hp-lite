@@ -2,9 +2,8 @@
 FROM --platform=$TARGETPLATFORM node:20-alpine AS frontend-builder
 
 WORKDIR /web
-COPY ../../../hp-web/package*.json .
+COPY ./hp-web .
 RUN npm ci --omit=dev
-COPY ../../../hp-web .
 RUN npm run build
 
 # server构建阶段
@@ -13,7 +12,7 @@ FROM --platform=$TARGETPLATFORM golang:1.22-alpine AS builder
 WORKDIR /app
 
 # 复制项目源码
-COPY . .
+COPY ./hp-server-golang/hp-server-lib .
 
 # 复制前端构建结果到Go项目
 COPY --from=frontend-builder /web/dist ./web/static
