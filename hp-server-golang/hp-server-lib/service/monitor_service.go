@@ -30,3 +30,14 @@ func (receiver MonitorService) ListData(userId int) map[int][]entity.UserStatist
 	}
 	return result
 }
+
+// 通过配置id获取监控数据
+func (receiver MonitorService) GetMonitorDataByConfigId(configId int) []entity.UserStatisticsEntity {
+	var results []entity.UserStatisticsEntity
+	tx := db.DB.Model(&entity.UserStatisticsEntity{}).Where("config_id = ?", configId).Order("time").Find(&results)
+	if tx.Error != nil {
+		return []entity.UserStatisticsEntity{}
+	}
+
+	return results
+}

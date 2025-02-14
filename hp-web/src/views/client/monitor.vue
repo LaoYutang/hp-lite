@@ -1,7 +1,17 @@
 <template>
   <div>
-    <div v-if="monitorData && Object.keys(monitorData).length === 0">暂无穿透数据统计</div>
-    <div v-else id="chat" />
+    <div v-if="currentConfigList && currentConfigList.length === 0">暂无配置</div>
+    <div v-else>
+      <a-select style="width: 200px" v-model:value="currentConfigId" @change="selectChange">
+        <a-select-option v-for="item in currentConfigList" :key="item.id" :value="item.id">
+          {{ `${item.remarks} (id:${item.id})` }}
+        </a-select-option>
+      </a-select>
+      <div id="chart">
+        <div id="flow" style="width: 100%; height: 40vh" />
+        <div id="access" style="width: 100%; height: 40vh" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -20,7 +30,7 @@
   import { UniversalTransition } from 'echarts/features';
   import { CanvasRenderer } from 'echarts/renderers';
   import { onMounted, ref } from 'vue';
-  import { monitorList } from '../../api/client/monitor';
+  import { getMonitorData } from '../../api/client/monitor';
   import { getConfigList } from '../../api/client/config';
 
   echarts.use([
@@ -36,12 +46,12 @@
     UniversalTransition,
   ]);
 
-  const monitorData = ref();
   const currentConfigList = ref();
+  const currentConfigId = ref();
 
-  const loadData = async () => {
-    let data = await monitorList();
-    monitorData.value = data.data;
+  const loadData = async (configId) => {
+    let data = await getMonitorData({ configId });
+    return data.data;
   };
 
   const formatTimestamp = (timestamp) => {
@@ -65,12 +75,7 @@
   };
 
   const showFlow = (key, dataList) => {
-    var chartDom = document.getElementById('chat');
-    let flow = document.createElement('div');
-    flow.id = 'flow' + key;
-    flow.style.width = '100%';
-    flow.style.height = '40vh';
-    chartDom.appendChild(flow);
+    var chartDom = document.getElementById('flow');
 
     let option = {
       title: {
@@ -118,8 +123,7 @@
           emphasis: {
             focus: 'series',
           },
-          // prettier-ignore
-          data: dataList.map(item => (item.download / 1024/1024).toFixed(2)),
+          data: dataList.map((item) => (item.download / 1024 / 1024).toFixed(2)),
         },
         {
           name: '上传',
@@ -129,23 +133,17 @@
           emphasis: {
             focus: 'series',
           },
-          // prettier-ignore
-          data: dataList.map(item => (item.upload / 1024/1024).toFixed(2)),
+          data: dataList.map((item) => (item.upload / 1024 / 1024).toFixed(2)),
         },
       ],
     };
 
-    let myChart = echarts.init(document.getElementById(flow.id));
-    option && myChart.setOption(option);
+    let flowChart = echarts.init(chartDom);
+    option && flowChart.setOption(option);
   };
 
   const showAccess = (key, dataList) => {
-    var chartDom = document.getElementById('chat');
-    let flow = document.createElement('div');
-    flow.id = 'access' + key;
-    flow.style.width = '100%';
-    flow.style.height = '40vh';
-    chartDom.appendChild(flow);
+    var chartDom = document.getElementById('access');
 
     let option = {
       title: {
@@ -187,8 +185,14 @@
       ],
     };
 
-    let myChart = echarts.init(document.getElementById(flow.id));
-    option && myChart.setOption(option);
+    let accessChart = echarts.init(chartDom);
+    option && accessChart.setOption(option);
+  };
+
+  const selectChange = async (value) => {
+    const res = await loadData(value);
+    showFlow(value, res);
+    showAccess(value, res);
   };
 
   const loadConfigData = async () => {
@@ -199,15 +203,16 @@
       pageSize: 1000,
     }).then((res) => {
       currentConfigList.value = res.data.records;
+      if (currentConfigList.value.length > 0) {
+        currentConfigId.value = currentConfigList.value[0].id;
+      }
     });
   };
 
   onMounted(async () => {
-    await loadData();
     await loadConfigData();
-    for (let monitorDataKey in monitorData.value) {
-      showFlow(monitorDataKey, monitorData.value[monitorDataKey]);
-      showAccess(monitorDataKey, monitorData.value[monitorDataKey]);
+    if (currentConfigList.value.length > 0) {
+      selectChange(currentConfigList.value[0].id);
     }
   });
 </script>

@@ -6,6 +6,7 @@ import (
 	"hp-server-lib/service"
 	"hp-server-lib/util"
 	"net/http"
+	"strconv"
 )
 
 type MonitorController struct {
@@ -32,6 +33,15 @@ func (receiver MonitorController) List(w http.ResponseWriter, r *http.Request) {
 		} else {
 			json.NewEncoder(w).Encode(bean.ResError("登陆失败"))
 		}
-
 	}
+}
+
+func (receiver MonitorController) GetMonitorData(w http.ResponseWriter, r *http.Request) {
+	configId, err := strconv.Atoi(r.URL.Query().Get("configId"))
+	if err != nil {
+		json.NewEncoder(w).Encode(bean.ResErrorCode(-2, "配置id错误"))
+		return
+	}
+	data := receiver.GetMonitorDataByConfigId(configId)
+	json.NewEncoder(w).Encode(bean.ResOk(data))
 }
