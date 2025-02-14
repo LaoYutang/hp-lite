@@ -48,6 +48,8 @@
 
   const currentConfigList = ref();
   const currentConfigId = ref();
+  let flowChart;
+  let accessChart;
 
   const loadData = async (configId) => {
     let data = await getMonitorData({ configId });
@@ -74,12 +76,10 @@
     return remark;
   };
 
-  const showFlow = (key, dataList) => {
-    var chartDom = document.getElementById('flow');
-
+  const showFlow = (dataList) => {
     let option = {
       title: {
-        text: `配置 ${getRemarkById(key)} (id:${key}) 下载/上传`,
+        text: `下载/上传`,
         left: 'center',
       },
       tooltip: {
@@ -137,17 +137,13 @@
         },
       ],
     };
-
-    let flowChart = echarts.init(chartDom);
     option && flowChart.setOption(option);
   };
 
-  const showAccess = (key, dataList) => {
-    var chartDom = document.getElementById('access');
-
+  const showAccess = (dataList) => {
     let option = {
       title: {
-        text: `配置 ${getRemarkById(key)} (id:${key}) pv/uv 统计`,
+        text: `pv/uv 统计`,
         left: 'center',
       },
       tooltip: {
@@ -184,15 +180,13 @@
         },
       ],
     };
-
-    let accessChart = echarts.init(chartDom);
     option && accessChart.setOption(option);
   };
 
   const selectChange = async (value) => {
     const res = await loadData(value);
-    showFlow(value, res);
-    showAccess(value, res);
+    showFlow(res);
+    showAccess(res);
   };
 
   const loadConfigData = async () => {
@@ -211,6 +205,8 @@
 
   onMounted(async () => {
     await loadConfigData();
+    flowChart = echarts.init(document.getElementById('flow'));
+    accessChart = echarts.init(document.getElementById('access'));
     if (currentConfigList.value.length > 0) {
       selectChange(currentConfigList.value[0].id);
     }
