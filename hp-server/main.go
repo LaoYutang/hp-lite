@@ -1,12 +1,12 @@
 package main
 
 import (
-	"hp-server-lib/config"
-	"hp-server-lib/cron"
-	"hp-server-lib/net/acme"
-	"hp-server-lib/net/http"
-	"hp-server-lib/net/server"
-	"hp-server-lib/web"
+	"hp-server/internal/config"
+	"hp-server/internal/cron"
+	"hp-server/internal/net/acme"
+	"hp-server/internal/net/http"
+	"hp-server/internal/net/server"
+	"hp-server/internal/web"
 	"log"
 	"os"
 

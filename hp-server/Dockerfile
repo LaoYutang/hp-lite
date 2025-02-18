@@ -7,7 +7,7 @@ WORKDIR /app
 COPY ./hp-server .
 
 # 复制前端构建结果到Go项目
-COPY ./hp-web/dist ./web/static
+COPY ./hp-web/dist ./internal/web/static
 
 # 下载依赖
 RUN go mod download
