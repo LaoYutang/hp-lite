@@ -30,8 +30,8 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
-          context: ./hp-client-golang
-          file: ./hp-client-golang/Dockerfile
+          context: ./hp-client
+          file: ./hp-client/Dockerfile
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: ${{ steps.metadata.outputs.tags }}

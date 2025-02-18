@@ -4,7 +4,7 @@ FROM --platform=$TARGETPLATFORM golang:1.22-alpine AS builder
 WORKDIR /app
 
 # 复制项目源码
-COPY ./hp-server-golang/hp-server-lib .
+COPY ./hp-server .
 
 # 复制前端构建结果到Go项目
 COPY ./hp-web/dist ./web/static
