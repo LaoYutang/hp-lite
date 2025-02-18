@@ -7,11 +7,20 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
+
+type ExpandLogger struct {
+	inner *zap.SugaredLogger
+}
+
+func (e *ExpandLogger) Printf(template string, args ...interface{}) {
+	e.inner.With("module", "gorm").Infof(template, args...)
+}
 
 func init() {
 	err := os.MkdirAll("./data", os.ModePerm)
@@ -20,10 +29,12 @@ func init() {
 	}
 
 	DB, err = gorm.Open(sqlite.Open("./data/hp-lite.db"), &gorm.Config{
-		Logger: gormLogger.New(logger.ELogger, gormLogger.Config{
-			SlowThreshold: 200 * time.Millisecond,
-			LogLevel:      gormLogger.Warn,
-		}),
+		Logger: gormLogger.New(
+			&ExpandLogger{inner: logger.Logger},
+			gormLogger.Config{
+				SlowThreshold: 200 * time.Millisecond,
+				LogLevel:      gormLogger.Warn,
+			}),
 	})
 	if err != nil {
 		logger.Fatalf("数据库连接失败: %v", err)

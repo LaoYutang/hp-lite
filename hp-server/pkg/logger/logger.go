@@ -11,36 +11,24 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type ExpandLogger struct {
-	inner *zap.SugaredLogger
-}
-
-func (e *ExpandLogger) Printf(template string, args ...interface{}) {
-	e.inner.With("module", "gorm").Infof(template, args...)
-}
-
 var (
-	Logger  *zap.SugaredLogger
-	ELogger *ExpandLogger
-	Debug   func(args ...interface{})
-	Info    func(args ...interface{})
-	Warn    func(args ...interface{})
-	Error   func(args ...interface{})
-	Fatal   func(args ...interface{})
-	Panic   func(args ...interface{})
-	Debugf  func(template string, args ...interface{})
-	Infof   func(template string, args ...interface{})
-	Warnf   func(template string, args ...interface{})
-	Errorf  func(template string, args ...interface{})
-	Fatalf  func(template string, args ...interface{})
-	Panicf  func(template string, args ...interface{})
+	Logger *zap.SugaredLogger
+	Debug  func(args ...interface{})
+	Info   func(args ...interface{})
+	Warn   func(args ...interface{})
+	Error  func(args ...interface{})
+	Fatal  func(args ...interface{})
+	Panic  func(args ...interface{})
+	Debugf func(template string, args ...interface{})
+	Infof  func(template string, args ...interface{})
+	Warnf  func(template string, args ...interface{})
+	Errorf func(template string, args ...interface{})
+	Fatalf func(template string, args ...interface{})
+	Panicf func(template string, args ...interface{})
 )
 
 func init() {
 	Logger = NewBufferRotateLogger(context.Background(), "data/logs/hp-server.log", 64, 8)
-	ELogger = &ExpandLogger{
-		inner: Logger,
-	}
 	Debug = Logger.Debug
 	Info = Logger.Info
 	Warn = Logger.Warn
