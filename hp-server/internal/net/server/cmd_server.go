@@ -2,7 +2,7 @@ package server
 
 import (
 	"bufio"
-	"log"
+	"hp-server/pkg/logger"
 	"net"
 	"strconv"
 )
@@ -21,7 +21,7 @@ func NewCmdServer() *CmdServer {
 func (tcpServer *CmdServer) StartServer(port int) {
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
-		log.Printf("不能创建TCP服务器：" + ":" + strconv.Itoa(port) + " 原因：" + err.Error() + " 提示：" + err.Error())
+		logger.Errorf("不能创建TCP服务器：" + ":" + strconv.Itoa(port) + " 原因：" + err.Error() + " 提示：" + err.Error())
 		return
 	}
 	tcpServer.listener = listener
@@ -35,11 +35,11 @@ func (tcpServer *CmdServer) StartServer(port int) {
 			if err == nil {
 				tcpServer.handler(conn)
 			} else {
-				log.Println("TCP错误连接222:", err)
+				logger.Errorf("TCP错误连接: ", err)
 			}
 		}
 	}()
-	log.Printf("指令传输服务启动成功TCP:%d", port)
+	logger.Infof("指令传输服务启动成功TCP: %d", port)
 
 }
 
@@ -62,11 +62,11 @@ func (tcpServer *CmdServer) handler(conn net.Conn) {
 
 			decode, e := handler.Decode(reader)
 			if e != nil {
-				log.Println(e)
+				logger.Errorf("解码异常:%v", e)
 				handler.ChannelInactive(conn)
 				return
 			}
-			if decode != nil && conn != nil {
+			if conn != nil {
 				err := handler.ChannelRead(conn, decode)
 				if err != nil {
 					return

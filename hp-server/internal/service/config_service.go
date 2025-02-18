@@ -6,7 +6,7 @@ import (
 	"hp-server/internal/config"
 	"hp-server/internal/db"
 	"hp-server/internal/entity"
-	"log"
+	"hp-server/pkg/logger"
 
 	"github.com/google/uuid"
 )
@@ -52,7 +52,7 @@ func (receiver *ConfigService) DeviceKey(userId int) []*bean.ResUserDeviceInfo {
 			for _, item := range data {
 				customEntity := userMap[item.UserId]
 				if customEntity != nil {
-					log.Printf(customEntity.Username)
+					logger.Infof("获取DeviceKey，用户名: %s", customEntity.Username)
 					item.Username = customEntity.Username
 					item.UserDesc = customEntity.Desc
 				}
@@ -77,15 +77,23 @@ func (receiver *ConfigService) ConfigList(userId int, page int, pageSize int) *b
 
 func (receiver *ConfigService) RemoveData(configId int) bool {
 	userQuery := &entity.UserConfigEntity{}
-	db.DB.Where("id = ? ", configId).First(userQuery)
-	if userQuery != nil {
-		var results entity.UserConfigEntity
-		db.DB.Where("id = ?", configId).Delete(&results)
-		NoticeClientUpdateData(userQuery.DeviceKey)
-		return true
+	tx := db.DB.Where("id = ? ", configId).First(userQuery)
+	if tx.Error != nil {
+		logger.Errorf("获取用户配置信息失败: %v", tx.Error)
+		return false
 	}
-	return false
+
+	var results entity.UserConfigEntity
+	tx = db.DB.Where("id = ?", configId).Delete(&results)
+	if tx.Error != nil {
+		logger.Errorf("删除用户配置信息失败: %v", tx.Error)
+		return false
+	}
+
+	NoticeClientUpdateData(userQuery.DeviceKey)
+	return true
 }
+
 func (receiver *ConfigService) AddData(configEntity entity.UserConfigEntity) error {
 	if len(configEntity.DeviceKey) == 0 {
 		return errors.New("设备ID未选择")
@@ -123,14 +131,21 @@ func (receiver *ConfigService) AddData(configEntity entity.UserConfigEntity) err
 	}
 	configEntity.ConfigKey = newUUID.String()
 	deviceQuery := &entity.UserDeviceEntity{}
-	db.DB.Where("device_key = ? ", configEntity.DeviceKey).First(deviceQuery)
-	if deviceQuery == nil || deviceQuery.UserId == nil {
+	tx := db.DB.Where("device_key = ? ", configEntity.DeviceKey).First(deviceQuery)
+	if tx.Error != nil {
+		logger.Errorf("获取设备信息失败: %v", tx.Error)
 		return errors.New("设备不存在")
 	}
+
 	configEntity.UserId = deviceQuery.UserId
 	configEntity.ServerIp = config.ConfigData.Tunnel.IP
 	configEntity.ServerPort = &config.ConfigData.Tunnel.Port
-	db.DB.Save(&configEntity)
+	tx = db.DB.Save(&configEntity)
+	if tx.Error != nil {
+		logger.Errorf("保存用户配置信息失败: %v", tx.Error)
+		return errors.New("保存失败")
+	}
+
 	NoticeClientUpdateData(configEntity.DeviceKey)
 	return nil
 }

@@ -1,11 +1,12 @@
 package tunnel
 
 import (
-	"github.com/quic-go/quic-go"
-	"log"
+	"hp-server/pkg/logger"
 	"net"
 	"strconv"
 	"sync"
+
+	"github.com/quic-go/quic-go"
 )
 
 type UdpServer struct {
@@ -25,9 +26,13 @@ func NewUdpServer(conn quic.Connection) *UdpServer {
 // ConnectLocal 内网服务的TCP链接
 func (udpServer *UdpServer) StartServer(port int) bool {
 	udpAddr, err := net.ResolveUDPAddr("udp", ":"+strconv.Itoa(port))
+	if err != nil {
+		logger.Errorf("无法解析UDP地址 %d: %v", port, err)
+		return false
+	}
 	conn, err := net.ListenUDP("udp", udpAddr)
 	if err != nil {
-		log.Printf("不能创建UDP服务器：" + ":" + strconv.Itoa(port) + " 原因：" + err.Error())
+		logger.Errorf("无法创建UDP服务器 %d: %v", port, err)
 		return false
 	}
 	udpServer.udpConn = conn

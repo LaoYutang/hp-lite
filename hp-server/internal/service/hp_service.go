@@ -7,8 +7,8 @@ import (
 	"hp-server/internal/message"
 	"hp-server/internal/net/tunnel"
 	"hp-server/internal/protol"
+	"hp-server/pkg/logger"
 	"hp-server/pkg/util"
-	"log"
 	"strconv"
 	"sync"
 
@@ -23,10 +23,13 @@ type HpService struct {
 }
 
 func (receiver *HpService) loadUserConfigInfo(configKey string) *bean.UserConfigInfo {
-
 	userQuery := &entity.UserConfigEntity{}
-	db.DB.Where("config_key = ? ", configKey).First(userQuery)
-	if userQuery == nil || userQuery.LocalPort == nil || userQuery.Port == nil || userQuery.Id == nil {
+	tx := db.DB.Where("config_key = ? ", configKey).First(userQuery)
+	if tx.Error != nil {
+		logger.Errorf("获取用户配置信息失败: %v", tx.Error)
+		return nil
+	}
+	if userQuery.LocalPort == nil || userQuery.Port == nil || userQuery.Id == nil {
 		return nil
 	}
 	s := ""
@@ -70,7 +73,7 @@ func (receiver *HpService) Register(data *message.HpMessage, conn quic.Connectio
 	if !server {
 		newTunnelServer.CLose()
 	} else {
-		log.Printf("隧道启动成功")
+		logger.Infof("隧道启动成功，端口：%d", info.Port)
 		HP_CACHE_TUN.Store(info.Port, newTunnelServer)
 	}
 	if info.Domain != nil {
@@ -116,6 +119,6 @@ func (receiver *HpService) Register(data *message.HpMessage, conn quic.Connectio
 	openStream, err := conn.OpenStream()
 	if err == nil {
 		openStream.Write(protol.Encode(hpMessage))
-		util.Print(status)
+		logger.Infof("注册成功\n%s", status)
 	}
 }

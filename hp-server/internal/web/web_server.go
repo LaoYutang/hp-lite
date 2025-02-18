@@ -4,9 +4,8 @@ import (
 	"embed"
 	"fmt"
 	"hp-server/internal/web/controller"
-	"log"
+	"hp-server/pkg/logger"
 	"net/http"
-	"runtime/debug"
 	"strconv"
 )
 
@@ -27,10 +26,10 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				// 捕获异常并记录日志
-				log.Printf("服务器错误: %v\n栈情况: %s", err, string(debug.Stack()))
+				logger.Errorf("服务器错误: %#v", err)
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, `{"error": "服务器错误", "message": "%v"}`, err)
+				w.Write([]byte(fmt.Sprintf(`{"error": "服务器错误", "message": "%v"}`, err)))
 			}
 		}()
 		w.Header().Set("Content-Type", "application/json")
@@ -74,5 +73,8 @@ func StartWebServer(port int) {
 	mux.HandleFunc("/client/domain/query", domainController.Query)
 
 	muxWithRecovery := recoveryMiddleware(mux)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), muxWithRecovery))
+	err := http.ListenAndServe(":"+strconv.Itoa(port), muxWithRecovery)
+	if err != nil {
+		logger.Fatalf("启动失败: %v", err)
+	}
 }

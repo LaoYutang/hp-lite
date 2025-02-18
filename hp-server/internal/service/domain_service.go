@@ -8,7 +8,7 @@ import (
 	"hp-server/internal/db"
 	"hp-server/internal/entity"
 	"hp-server/internal/net/acme"
-	"log"
+	"hp-server/pkg/logger"
 	"strconv"
 	"strings"
 	"time"
@@ -37,7 +37,7 @@ func (receiver *DomainService) DomainList(userId int, page int, pageSize int) *b
 			// 解析证书
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
-				log.Printf(err.Error())
+				logger.Errorf("证书格式错误: %v", err)
 				data.Tips = "证书格式错误."
 				continue
 			} else {

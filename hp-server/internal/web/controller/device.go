@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"hp-server/internal/bean"
 	"hp-server/internal/service"
+	"hp-server/pkg/logger"
 	"hp-server/pkg/util"
 	"net/http"
 )
@@ -28,7 +29,7 @@ func (receiver DeviceController) Add(w http.ResponseWriter, r *http.Request) {
 		// 解析请求体中的JSON数据
 		err := json.NewDecoder(r.Body).Decode(&msg)
 		if err != nil {
-			println(err.Error())
+			logger.Errorf("解析请求体中的JSON数据失败: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -48,7 +49,7 @@ func (receiver DeviceController) Update(w http.ResponseWriter, r *http.Request) 
 		// 解析请求体中的JSON数据
 		err := json.NewDecoder(r.Body).Decode(&msg)
 		if err != nil {
-			println(err.Error())
+			logger.Errorf("解析请求体中的JSON数据失败: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

@@ -3,7 +3,7 @@ package base
 import (
 	"hp-server/internal/db"
 	"hp-server/internal/entity"
-	"log"
+	"hp-server/pkg/logger"
 	"sync"
 	"time"
 )
@@ -85,7 +85,7 @@ func saveStats() {
 			Time:       milli,
 			CreateTime: time.Now(),
 		})
-		log.Printf("ConfigID: %d, Sent: %d bytes, Received: %d bytes, PV: %d, UV: %d\n",
+		logger.Infof("ConfigID: %d, Sent: %d bytes, Received: %d bytes, PV: %d, UV: %d\n",
 			configID, stats.sent, stats.received, stats.pv, len(stats.uv))
 		stats.mu.Unlock()
 		return true
@@ -105,18 +105,16 @@ func clearStats() {
 		statsMap.Delete(key)
 		return true
 	})
-	log.Println("统计数据已清除")
+	logger.Info("统计数据已清除")
 }
 
 func init() {
-	log.Printf("数据统计服务已启动")
+	logger.Info("数据统计服务已启动")
 	ticker := time.NewTicker(5 * time.Minute)
+
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				clearStats()
-			}
+		for range ticker.C {
+			clearStats()
 		}
 	}()
 }

@@ -25,12 +25,15 @@ type AcmeServer struct {
 func (u *AcmeServer) GetEmail() string {
 	return u.Email
 }
+
 func (u AcmeServer) GetRegistration() *registration.Resource {
 	return u.Registration
 }
+
 func (u *AcmeServer) GetPrivateKey() crypto.PrivateKey {
 	return u.key
 }
+
 func (u *AcmeServer) GenCert(domain string) (*certificate.Resource, error) {
 	request := certificate.ObtainRequest{
 		Domains: []string{domain}, // 这里如果有多个，就写多个就好了，可以是多个域名

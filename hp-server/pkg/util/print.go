@@ -2,13 +2,9 @@ package util
 
 import (
 	"bytes"
-	"github.com/olekukonko/tablewriter"
-	"log"
-)
 
-func Print(msg string) {
-	log.Println(msg)
-}
+	"github.com/olekukonko/tablewriter"
+)
 
 func PrintStatus(data [][]string) string {
 	if len(data) == 0 {

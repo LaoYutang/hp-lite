@@ -10,7 +10,7 @@ import (
 	"encoding/pem"
 	"hp-server/internal/net/base"
 	"hp-server/internal/protol"
-	"log"
+	"hp-server/pkg/logger"
 	"math/big"
 	"strconv"
 	"time"
@@ -65,7 +65,7 @@ func (quicServer *HpServer) StartServer(port int) {
 	}
 	listener, err := quic.ListenAddr(":"+strconv.Itoa(port), quicServer.generateTLSConfig(), q)
 	if err != nil {
-		log.Println("不能创建QUIC服务器：" + ":" + strconv.Itoa(port) + " 原因：" + err.Error() + " 提示：" + err.Error())
+		logger.Errorf("无法创建QUIC服务器 %d: %v", port, err)
 	}
 	quicServer.listener = listener
 	//设置读
@@ -73,14 +73,14 @@ func (quicServer *HpServer) StartServer(port int) {
 		for {
 			conn, err := listener.Accept(context.Background())
 			if err != nil {
-				log.Println("QUIC获取连接错误：" + err.Error())
+				logger.Errorf("QUIC获取连接错误：%v", err)
 			}
 			go func() {
 				for {
 					stream, err := conn.AcceptStream(context.Background())
 					if err != nil {
 						go quicServer.ChannelInactive(stream, conn)
-						log.Printf("接收流错误：全部关闭:%s", err.Error())
+						logger.Errorf("接收流错误：全部关闭: %v", err)
 						return
 					}
 					// 为每个连接启动一个新的处理 goroutine
@@ -89,7 +89,7 @@ func (quicServer *HpServer) StartServer(port int) {
 			}()
 		}
 	}()
-	log.Printf("数据传输服务启动成功UDP:%d", port)
+	logger.Infof("数据传输服务启动成功UDP: %d", port)
 }
 
 func (quicServer *HpServer) handler(stream quic.Stream, conn quic.Connection) {

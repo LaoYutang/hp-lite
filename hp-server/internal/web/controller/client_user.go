@@ -5,6 +5,7 @@ import (
 	"hp-server/internal/bean"
 	"hp-server/internal/entity"
 	"hp-server/internal/service"
+	"hp-server/pkg/logger"
 	"hp-server/pkg/util"
 	"net/http"
 	"strconv"
@@ -31,7 +32,7 @@ func (receiver ClientUserController) Add(w http.ResponseWriter, r *http.Request)
 		// 解析请求体中的JSON数据
 		err := json.NewDecoder(r.Body).Decode(&msg)
 		if err != nil {
-			println(err.Error())
+			logger.Errorf("解析请求体中的JSON数据失败: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

@@ -3,7 +3,7 @@ package tunnel
 import (
 	"bufio"
 	"hp-server/internal/bean"
-	"log"
+	"hp-server/pkg/logger"
 
 	"net"
 	"strconv"
@@ -29,7 +29,7 @@ func NewTcpServer(conn quic.Connection, userInfo bean.UserConfigInfo) *TcpServer
 func (tcpServer *TcpServer) StartServer(port int) bool {
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
-		log.Printf("不能创建TCP服务器：" + ":" + strconv.Itoa(port) + " 原因：" + err.Error())
+		logger.Errorf("无法创建TCP服务器 %d: %v", port, err)
 		return false
 	}
 	tcpServer.listener = listener
@@ -67,14 +67,14 @@ func (tcpServer *TcpServer) handler(conn net.Conn) {
 
 			decode, e := handler.Decode(reader)
 			if e != nil {
-				log.Println(e)
+				logger.Errorf("解码异常:%v", e)
 				handler.ChannelInactive(conn)
 				return
 			}
 			if decode != nil {
 				err := handler.ChannelRead(conn, decode)
 				if err != nil {
-					log.Println(e)
+					logger.Errorf("读取异常:%v", err)
 					return
 				}
 			}

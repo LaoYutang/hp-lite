@@ -6,7 +6,7 @@ import (
 	"hp-server/internal/bean"
 	"hp-server/internal/net/base"
 	"hp-server/internal/service"
-	"log"
+	"hp-server/pkg/logger"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -80,7 +80,7 @@ func StartHttpsServer() {
 			return
 		}
 		proxy := httputil.NewSingleHostReverseProxy(target)
-		log.Printf("来源: %s 访问地址: https://%s%s", clientIP, host, r.URL.Path)
+		logger.Infof("来源: %s 访问地址: https://%s%s", clientIP, host, r.URL.Path)
 		proxy.ServeHTTP(w, r)
 	})
 	// 创建 HTTPS 服务器
@@ -90,10 +90,9 @@ func StartHttpsServer() {
 		TLSConfig: tlsConfig,
 	}
 	// 启动 HTTPS 服务
-	log.Println("HTTPS代理服务启动")
+	logger.Info("HTTPS代理服务启动")
 	err := server.ListenAndServeTLS("", "") // 证书由 GetCertificate 动态选择
 	if err != nil {
-		log.Fatalf("HTTPS代理服务启动失败: %v", err)
+		logger.Fatalf("HTTPS代理服务启动失败: %v", err)
 	}
-
 }

@@ -7,7 +7,7 @@ import (
 	"hp-server/internal/net/http"
 	"hp-server/internal/net/server"
 	"hp-server/internal/web"
-	"log"
+	"hp-server/pkg/logger"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -16,12 +16,11 @@ import (
 func main() {
 	data, err := os.ReadFile("app.yml")
 	if err != nil {
-		log.Printf("不存在app.yml文件,请创建一个app.yml文件，并添加相关配置")
-		return
+		logger.Fatal("不存在app.yml文件，请创建一个app.yml文件，并添加相关配置")
 	}
 	err = yaml.Unmarshal(data, &config.ConfigData)
 	if err != nil {
-		log.Fatalf("解析app.yml文件错误: %v", err)
+		logger.Fatalf("解析app.yml文件错误: %v", err)
 	}
 	if config.ConfigData.Tunnel.OpenDomain {
 		go http.StartHttpServer()
@@ -41,9 +40,8 @@ func main() {
 
 	// acme挑战
 	go func() {
-		err2 := acme.StartAcmeServer(config.ConfigData.Acme.Email, config.ConfigData.Acme.HttpPort)
-		if err2 != nil {
-			log.Printf("证书申请服务启动失败: %s", err2.Error())
+		if err := acme.StartAcmeServer(config.ConfigData.Acme.Email, config.ConfigData.Acme.HttpPort); err != nil {
+			logger.Errorf("证书申请服务启动失败: %s", err.Error())
 		}
 	}()
 

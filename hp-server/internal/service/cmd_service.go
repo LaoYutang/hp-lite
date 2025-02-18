@@ -7,7 +7,7 @@ import (
 	"hp-server/internal/entity"
 	"hp-server/internal/message"
 	"hp-server/internal/protol"
-	"log"
+	"hp-server/pkg/logger"
 	"net"
 	"sync"
 )
@@ -101,7 +101,7 @@ func (receiver CmdService) StoreMemInfo(conn net.Conn, message *message.CmdMessa
 func (receiver *CmdService) Connect(conn net.Conn, message *message.CmdMessage) {
 	_, ok := CMD_CACHE_CONN.Load(message.GetKey())
 	if ok {
-		log.Printf("设备KEY已经在线:%s", message.GetKey())
+		logger.Infof("设备KEY已经在线: %s", message.GetKey())
 		receiver.sendTips(conn, "设备KEY已经在线")
 		return
 	} else {
@@ -114,15 +114,11 @@ func (receiver CmdService) Clear(conn net.Conn) {
 	deviceKey := ""
 	CMD_CACHE_CONN.Range(func(key, value interface{}) bool {
 		deviceKey = key.(string)
-		if value == conn {
-			return false
-		}
-		// 返回 true 继续遍历
-		return true
+		return value != conn
 	})
 	//清除数据
 	if len(deviceKey) > 0 {
-		log.Printf("清除设备key:%s", deviceKey)
+		logger.Infof("清除设备key: %s", deviceKey)
 		CMD_CACHE_CONN.Delete(deviceKey)
 		CMD_CACHE_MEMORY_INFO.Delete(deviceKey)
 	}

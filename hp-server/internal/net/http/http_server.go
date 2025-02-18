@@ -5,7 +5,7 @@ import (
 	"hp-server/internal/config"
 	"hp-server/internal/net/base"
 	"hp-server/internal/service"
-	"log"
+	"hp-server/pkg/logger"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -39,7 +39,7 @@ func StartHttpServer() {
 				return
 			}
 			proxy := httputil.NewSingleHostReverseProxy(target)
-			log.Printf("代理地址: %s %s", target, r.URL.Path)
+			logger.Infof("代理地址: %s %s", target, r.URL.Path)
 			proxy.ServeHTTP(w, r)
 			return
 		}
@@ -73,10 +73,10 @@ func StartHttpServer() {
 			return
 		}
 		proxy := httputil.NewSingleHostReverseProxy(target)
-		log.Printf("来源: %s 访问地址: http://%s%s", clientIP, host, r.URL.Path)
+		logger.Infof("来源: %s 访问地址: http://%s%s", clientIP, host, r.URL.Path)
 		proxy.ServeHTTP(w, r)
 	})
-	log.Println("HTTP代理服务启动")
+	logger.Info("HTTP代理服务启动")
 	err := http.ListenAndServe(":80", mux)
 	if err != nil {
 		return

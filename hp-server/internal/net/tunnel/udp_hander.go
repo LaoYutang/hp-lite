@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"hp-server/internal/message"
 	"hp-server/internal/protol"
+	"hp-server/pkg/logger"
 	"hp-server/pkg/util"
-	"log"
 	"net"
 	"time"
 
@@ -42,7 +42,7 @@ func (h *UdpHandler) handlerStream(stream quic.Stream) {
 
 func (receiver *UdpHandler) ReadStreamData(data *message.HpMessage) {
 	if data.Type == message.HpMessage_DATA {
-		log.Printf(string(data.Data))
+		logger.Infof("UDP数据: %s", data.Data)
 		receiver.lastActiveAt = time.Now()
 		receiver.udpConn.WriteToUDP(data.Data, receiver.addr)
 	}
@@ -63,7 +63,7 @@ func (h *UdpHandler) ChannelActive(udpConn *net.UDPConn) {
 			},
 		}
 		stream.Write(protol.Encode(m))
-		log.Printf("通知内网连接")
+		logger.Infof("通知内网连接")
 		h.stream = stream
 		go h.handlerStream(stream)
 	}
@@ -72,18 +72,15 @@ func (h *UdpHandler) ChannelActive(udpConn *net.UDPConn) {
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop() // 确保定时器最终被停止
 		// 无限循环，每 5 秒执行一次任务
-		for {
-			select {
-			case <-ticker.C:
-				sub := time.Now().Sub(h.lastActiveAt)
-				if sub.Seconds() > 20 {
-					value, ok := h.udpServer.cache.Load(h.addr.String())
-					if ok {
-						handler := value.(*UdpHandler)
-						handler.ChannelInactive(h.udpConn)
-						h.udpServer.cache.Delete(h.channelId)
-						return
-					}
+		for range ticker.C {
+			sub := time.Since(h.lastActiveAt)
+			if sub.Seconds() > 20 {
+				value, ok := h.udpServer.cache.Load(h.addr.String())
+				if ok {
+					handler := value.(*UdpHandler)
+					handler.ChannelInactive(h.udpConn)
+					h.udpServer.cache.Delete(h.channelId)
+					return
 				}
 			}
 		}

@@ -2,7 +2,7 @@ package tunnel
 
 import (
 	"hp-server/internal/bean"
-	"log"
+	"hp-server/pkg/logger"
 
 	"github.com/quic-go/quic-go"
 )
@@ -44,10 +44,10 @@ func (receiver *TunnelServer) StartServer() bool {
 func (receiver *TunnelServer) CLose() {
 	if receiver.tcpServer != nil {
 		receiver.tcpServer.CLose()
-		log.Printf("关闭TCP服务,端口：%d", receiver.port)
+		logger.Infof("关闭TCP服务,端口：%d", receiver.port)
 	}
 	if receiver.udpServer != nil {
 		receiver.udpServer.CLose()
-		log.Printf("关闭UDP服务,端口：%d", receiver.port)
+		logger.Infof("关闭UDP服务,端口：%d", receiver.port)
 	}
 }

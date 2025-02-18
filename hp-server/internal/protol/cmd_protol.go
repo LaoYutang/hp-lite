@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"hp-server/internal/message"
+	"hp-server/pkg/logger"
 	"io"
 
 	"google.golang.org/protobuf/proto"
@@ -28,7 +28,7 @@ func CmdDecode(reader *bufio.Reader) (*message.CmdMessage, error) {
 	message := &message.CmdMessage{}
 	err = proto.Unmarshal(d, message)
 	if err != nil {
-		println(hex.Dump(d))
+		logger.Errorf("解码异常:%v", err)
 		return nil, err
 	}
 	return message, nil

@@ -2,12 +2,13 @@ package db
 
 import (
 	"hp-server/internal/entity"
-	"log"
+	"hp-server/pkg/logger"
 	"os"
+	"time"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -15,20 +16,23 @@ var DB *gorm.DB
 func init() {
 	err := os.MkdirAll("./data", os.ModePerm)
 	if err != nil {
-		log.Fatal("创建目录失败", err)
+		logger.Fatalf("创建目录失败: %v", err)
 	}
 
 	DB, err = gorm.Open(sqlite.Open("./data/hp-lite.db"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info), // 设置日志级别为 Info
+		Logger: gormLogger.New(logger.ELogger, gormLogger.Config{
+			SlowThreshold: 200 * time.Millisecond,
+			LogLevel:      gormLogger.Warn,
+		}),
 	})
 	if err != nil {
-		log.Fatal("数据库连接失败", err)
+		logger.Fatalf("数据库连接失败: %v", err)
 	}
 
 	// 获取底层的 sql.DB 实例
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Fatal("获取DB实例失败", err)
+		logger.Fatalf("获取DB实例失败: %v", err)
 	}
 
 	// 设置连接池参数
