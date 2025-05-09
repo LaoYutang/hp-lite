@@ -77,7 +77,16 @@ func (receiver *HpService) Register(data *message.HpMessage, conn quic.Connectio
 		HP_CACHE_TUN.Store(info.Port, newTunnelServer)
 	}
 	if info.Domain != nil {
-		DOMAIN_USER_INFO.Store(*info.Domain, info)
+		// 查询domain表获取证书
+		res := &entity.UserDomainEntity{}
+		tx := db.DB.Where("domain = ?", *info.Domain).First(res)
+		if tx.Error != nil {
+			logger.Errorf("注册端口配置时，获取域名证书失败: %v", tx.Error)
+		} else {
+			info.CertificateKey = res.CertificateKey
+			info.CertificateContent = res.CertificateContent
+			DOMAIN_USER_INFO.Store(*info.Domain, info)
+		}
 	}
 
 	//更新服务端状态

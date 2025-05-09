@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+	"hp-server/internal/bean"
 	"hp-server/internal/db"
 	"hp-server/internal/entity"
 	"hp-server/internal/net/acme"
+	"hp-server/internal/service"
 	"hp-server/pkg/logger"
 	"time"
 
@@ -67,8 +69,17 @@ func updateCertificate(ctx context.Context) {
 					})
 				if tx.Error != nil {
 					logger.Errorf("数据库更新失败: %v", tx.Error)
+					continue
+				}
+				logger.Info("证书更新成功")
+				// 更新内存中的证书
+				info, exist := service.DOMAIN_USER_INFO.Load(data.Domain)
+				if exist {
+					info.(*bean.UserConfigInfo).CertificateKey = string(cert.PrivateKey)
+					info.(*bean.UserConfigInfo).CertificateContent = string(cert.Certificate)
+					logger.Infof("更新内存中的证书: %s", data.Domain)
 				} else {
-					logger.Info("证书更新成功")
+					logger.Infof("内存中不存在域名信息: %s", data.Domain)
 				}
 			}
 		}

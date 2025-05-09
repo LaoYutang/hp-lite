@@ -82,8 +82,8 @@ func (receiver *DomainService) DomainListByKey(userId int, keyword string) *bean
 
 func (receiver *DomainService) RemoveData(id int) bool {
 	userQuery := &entity.UserDomainEntity{}
-	db.DB.Where("id = ? ", id).First(userQuery)
-	if userQuery != nil {
+	tx := db.DB.Where("id = ? ", id).First(userQuery)
+	if tx.Error == nil {
 		var results entity.UserDomainEntity
 		db.DB.Where("id = ?", id).Delete(&results)
 		return true
@@ -109,8 +109,8 @@ func (receiver *DomainService) AddData(userDomain entity.UserDomainEntity) error
 
 func (receiver *DomainService) GenSsl(id int) bool {
 	userQuery := &entity.UserDomainEntity{}
-	db.DB.Where("id = ? ", id).First(userQuery)
-	if userQuery != nil {
+	tx := db.DB.Where("id = ? ", id).First(userQuery)
+	if tx.Error == nil {
 		receiver.UpdateStatus(id, "证书获取中...")
 		go func() {
 			cert, err := acme.ConfigAcme.GenCert(*userQuery.Domain)
